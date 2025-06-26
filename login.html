@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .login-container {
+      background: white;
+      padding: 30px;
+      border-radius: 5px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      width: 400px;
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .login-header h1 {
+      color: #2c3e50;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px 35px 10px 35px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    .form-group i.fa-user,
+    .form-group i.fa-lock {
+      position: absolute;
+      left: 10px;
+      top: 32px;
+      color: #aaa;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 10px;
+      top: 32px;
+      cursor: pointer;
+      color: #aaa;
+    }
+
+    .login-button {
+      width: 100%;
+      padding: 12px;
+      background-color: #2c3e50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+
+    .login-button:hover {
+      background-color: #1a252f;
+    }
+
+    .signup-link {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .signup-link a {
+      color: #2c3e50;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .signup-link a:hover {
+      text-decoration: underline;
+    }
+
+    .message {
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      font-weight: bold;
+      display: none;
+    }
+
+    .message.error {
+      background-color: #f8d7da;
+      color: #842029;
+      display: block;
+    }
+
+    .message.success {
+      background-color: #d1e7dd;
+      color: #0f5132;
+      display: block;
+    }
+
+    .error-text {
+      color: #d32f2f;
+      font-size: 13px;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-header">
+      <h1>Login</h1>
+    </div>
+
+    <div id="login-message" class="message"></div>
+
+    <form id="loginForm" method="POST" action="{% url 'teacher_login' %}">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="email">Email</label>
+        <i class="fas fa-user"></i>
+        <input type="email" id="email" name="email" placeholder="Enter email" required>
+        <div class="error-text" id="email_error"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <i class="fas fa-lock"></i>
+        <input type="password" id="password" name="password" placeholder="Enter password" required>
+        <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+        <div class="error-text" id="password_error"></div>
+      </div>
+
+      <button type="submit" class="login-button">Login</button>
+    </form>
+
+    <div class="signup-link">
+      Don't have an account? <a href="{% url 'teacher_register' %}">Sign Up</a>
+    </div>
+  </div>
+
+  <script>
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordField = document.getElementById('password');
+
+    togglePassword.addEventListener('click', function () {
+      const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordField.setAttribute('type', type);
+      this.classList.toggle('fa-eye-slash');
+    });
+
+    // Clear errors while typing
+    document.querySelectorAll('.form-group input').forEach(input => {
+      input.addEventListener('input', function() {
+        const errorId = this.id + '_error';
+        const errorElement = document.getElementById(errorId);
+        if (errorElement) errorElement.innerText = '';
+        document.getElementById('login-message').style.display = 'none';
+      });
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const form = e.target;
+      const formData = new FormData(form);
+
+      // Clear previous messages
+      document.querySelectorAll('.error-text').forEach(el => el.innerText = '');
+      const messageBox = document.getElementById('login-message');
+      messageBox.style.display = 'none';
+      messageBox.classList.remove('success', 'error');
+      messageBox.innerText = '';
+
+      fetch(form.action, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          messageBox.classList.add('success');
+          messageBox.innerText = data.message || 'Login successful!';
+          messageBox.style.display = 'block';
+          setTimeout(() => {
+            window.location.href = "{% url 'handle_student_list' %}";
+          }, 1500);
+        } else {
+          if (data.error_field) {
+            Object.keys(data.error_field).forEach(field => {
+              const errorEl = document.getElementById(`${field}_error`);
+              if (errorEl) errorEl.innerText = data.error_field[field];
+            });
+          }
+
+          if (data.message) {
+            messageBox.classList.add('error');
+            messageBox.innerText = data.message;
+            messageBox.style.display = 'block';
+
+            // Hide after 5 seconds
+            setTimeout(() => {
+              messageBox.style.display = 'none';
+            }, 5000);
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+
+
+
+
+

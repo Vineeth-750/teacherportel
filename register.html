@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Registration</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .register-container {
+      background: white;
+      padding: 30px;
+      width: 400px;
+      border-radius: 5px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .register-header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .register-header h1 {
+      font-size: 24px;
+      color: #2c3e50;
+      margin: 0;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #2c3e50;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px 35px 10px 35px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #2c3e50;
+    }
+
+    .form-group.error input {
+      border-color: #d32f2f;
+    }
+
+    .icon {
+      position: absolute;
+      left: 10px;
+      top: 32px;
+      color: #aaa;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 10px;
+      top: 32px;
+      cursor: pointer;
+      color: #aaa;
+    }
+
+    .error-message {
+      color: #d32f2f;
+      font-size: 12px;
+      margin-top: 3px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .register-button {
+      width: 100%;
+      padding: 12px;
+      background-color: #2c3e50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .register-button:hover {
+      background-color: #1a252f;
+    }
+
+    .success-message {
+      background-color: #d1e7dd;
+      color: #0f5132;
+      padding: 10px;
+      border: 1px solid #c3e6cb;
+      border-radius: 4px;
+      margin-bottom: 15px;
+      text-align: center;
+      display: none;
+    }
+
+    .success-message.show {
+      display: block;
+    }
+
+    .login-link {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .login-link a {
+      color: #2c3e50;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .login-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="register-container">
+    <div class="register-header">
+      <h1>Teacher Registration</h1>
+    </div>
+
+    <div id="successMessage" class="success-message"></div>
+
+    <form id="registerForm" method="POST" action="{% url 'teacher_register' %}">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="name">Teacher Name</label>
+        <i class="fas fa-user icon"></i>
+        <input type="text" id="name" name="name" placeholder="Enter teacher name" required />
+        <div class="error-message" id="nameError"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <i class="fas fa-envelope icon"></i>
+        <input type="email" id="email" name="email" placeholder="Enter email" required />
+        <div class="error-message" id="emailError"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <i class="fas fa-lock icon"></i>
+        <input type="password" id="password" name="password" placeholder="Enter password" required />
+        <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+        <div class="error-message" id="passwordError"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirm_password">Confirm Password</label>
+        <i class="fas fa-lock icon"></i>
+        <input type="password" id="confirm_password" name="confirm_password" placeholder="Re-enter password" required />
+        <i class="fas fa-eye toggle-password" id="toggleConfirmPassword"></i>
+        <div class="error-message" id="confirmPasswordError"></div>
+      </div>
+
+      <button type="submit" class="register-button">Register</button>
+    </form>
+
+    <div class="login-link">
+      Already have an account? <a href="{% url 'teacher_login' %}">Login here</a>
+    </div>
+  </div>
+
+  <script>
+    const togglePassword = document.getElementById('togglePassword');
+    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirm_password');
+
+    togglePassword.addEventListener('click', function () {
+      const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+      password.setAttribute('type', type);
+      this.classList.toggle('fa-eye-slash');
+    });
+
+    toggleConfirmPassword.addEventListener('click', function () {
+      const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+      confirmPassword.setAttribute('type', type);
+      this.classList.toggle('fa-eye-slash');
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const form = e.target;
+      const formData = new FormData(form);
+
+      // Clear previous errors
+      document.querySelectorAll('.error-message').forEach(el => {
+        el.classList.remove('show');
+        el.innerText = '';
+      });
+      document.getElementById('successMessage').classList.remove('show');
+
+      // Check if passwords match
+      if (password.value !== confirmPassword.value) {
+        document.getElementById('confirmPasswordError').innerText = 'Passwords do not match';
+        document.getElementById('confirmPasswordError').classList.add('show');
+        return;
+      }
+
+      fetch(form.action, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          document.getElementById('successMessage').innerText = data.message || 'Registration successful!';
+          document.getElementById('successMessage').classList.add('show');
+
+          setTimeout(() => {
+            window.location.href = "{% url 'teacher_login' %}";
+          }, 1500);
+        } else {
+          if (data.error_field) {
+            Object.entries(data.error_field).forEach(([field, msg]) => {
+              const errorEl = document.getElementById(`${field}Error`);
+              if (errorEl) {
+                errorEl.innerText = msg;
+                errorEl.classList.add('show');
+              }
+            });
+          }
+
+          if (data.message) {
+            const msgEl = document.getElementById('successMessage');
+            msgEl.innerText = data.message;
+            msgEl.classList.add('show');
+            msgEl.style.backgroundColor = '#f8d7da';
+            msgEl.style.color = '#721c24';
+            msgEl.style.border = '1px solid #f5c6cb';
+          }
+        }
+      });
+    });
+
+    //event listeners to clear error messages when typing
+    document.querySelectorAll('.form-group input').forEach(input => {
+      input.addEventListener('input', function() {
+        const errorId = this.id + 'Error';
+        const errorElement = document.getElementById(errorId);
+        if (errorElement) {
+          errorElement.classList.remove('show');
+          errorElement.innerText = '';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+
+
+
+
